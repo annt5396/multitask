@@ -22,7 +22,7 @@ RetroDataModelArguments:
     # sketch_architectures: RobertaForSequenceClassification
     
     # IntensiveModelArguments
-    intensive_model_name: /home/annt/kbqa/mrc/mrc/train/microsoft_infoxlm_large_5205/checkpoint-9485
+    intensive_model_name: xlm-roberta-base
     intensive_architectures: XLMRobertaQAAVPool
     
 

@@ -145,7 +145,9 @@ class RetroArguments(
         model_cls = getattr(models, self.intensive_architectures, None)
         if model_cls is None:
             raise AttributeError
+        print("**"*100)
         self.intensive_model_cls = model_cls
+        # print(self.intensive_model_cls)
         self.intensive_model_type = model_cls.model_type
         if self.intensive_tokenizer_name is None:
             self.intensive_tokenizer_name = self.intensive_model_name

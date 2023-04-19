@@ -74,7 +74,7 @@ def data_aug_for_multiple_answers(examples: Batch) -> Union[Dict, Any]:
     return result
 
 def main(args):
-    squad_v2 = datasets.load_dataset("/home/annt/kbqa/multitask_mrc/multitask/load_data.py")
+    squad_v2 = datasets.load_dataset("/home/vuth/multitask/load_data.py") #TODO Em vũ : Hạn chế hardcode nha a
     print(squad_v2)
     squad_v2 = squad_v2.map(
         schema_integrate, 
@@ -106,11 +106,13 @@ def main(args):
     #           make train/eval dataset from examples
     #           load model from 🤗 hub
     #           set sketch/intensive reader and rear verifier
+    print("Init Reader")
     retro_reader = MultiTaskReader.load(
         train_examples=squad_v2["train"], #.select(range(1000)),
         eval_examples=squad_v2["validation"], #.select(range(100)),
         config_file=args.configs,
     )
+    print("Start Process ... ")
     # Train
     if args.do_train:
         retro_reader.train()

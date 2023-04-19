@@ -93,8 +93,8 @@ class SquadV2(datasets.GeneratorBasedBuilder):
         #downloaded_files = dl_manager.download_and_extract(urls_to_download)
 
         return [
-            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": '/home/annt/kbqa/multitask_mrc/multitask/dataset/squad_v20_mailong.json'}),
-            datasets.SplitGenerator(name=datasets.Split.VALIDATION, gen_kwargs={"filepath": '/home/annt/kbqa/multitask_mrc/multitask/dataset/squad_v20_mailong.json'}),
+            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": '/home/vuth/multitask/dataset/squad_v20_mailong.json'}),
+            datasets.SplitGenerator(name=datasets.Split.VALIDATION, gen_kwargs={"filepath": '/home/vuth/multitask/dataset/squad_v20_mailong.json'}),
             # datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepath": '/home/haonv/annt/QA/kbqa/data_RC/data_kbqa/data_uit_squadv2_aug/test_ViQuAD.json'})
         ]
 

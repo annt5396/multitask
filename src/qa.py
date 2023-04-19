@@ -409,13 +409,14 @@ class MultiTaskReader:
             sketch_best_metric, intensive_best_metric = None, None
         intensive_training_args = training_args
 
+        print(f"Tokenizer is loading ..... ")
         intensive_tokenizer = AutoTokenizer.from_pretrained(
             pretrained_model_name_or_path=retro_args.intensive_tokenizer_name,
             use_auth_token=retro_args.use_auth_token,
             revision=retro_args.intensive_revision,
             use_fast=True
         )
-
+        print(f"Tokenizer is loaded")
          # If `train_examples` is feeded, perform preprocessing
         if train_examples is not None and intensive_train_dataset is None:
             intensive_prep_fn, is_batched = get_intensive_features(intensive_tokenizer, "train", retro_args)
@@ -441,13 +442,16 @@ class MultiTaskReader:
         # Get preprocessing function for inference
         intensive_prep_fn, _ = get_intensive_features(intensive_tokenizer, "test", retro_args)
 
+        print(f"Reader is loading ....")
         # Get model for intensive reader
         intensive_model_cls = retro_args.intensive_model_cls
+        print(intensive_model_cls)
         intensive_model = intensive_model_cls.from_pretrained(
             pretrained_model_name_or_path=retro_args.intensive_model_name,
             use_auth_token=retro_args.use_auth_token,
             revision=retro_args.intensive_revision,
         )
+        print(f"Reader is loaded")
 
         # Get intensive reader
         intensive_training_args.run_name = intensive_run_name

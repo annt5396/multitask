@@ -20,7 +20,7 @@ class XLMRobertaQAAVPool(XLMRobertaPreTrainedModel):
         super().__init__(config)
         self.num_labels = config.num_labels
 
-        self.xlmr = XLMRobertaModel(config, add_pooling_layer=False)
+        self.roberta = XLMRobertaModel(config, add_pooling_layer=False) # TODO Vũ fixbug 
         self.qa_outputs = nn.Linear(config.hidden_size, config.num_labels)
         self.has_ans = nn.Sequential(
             nn.Dropout(p=config.hidden_dropout_prob),
