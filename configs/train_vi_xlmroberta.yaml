@@ -22,8 +22,8 @@ RetroDataModelArguments:
     # sketch_architectures: RobertaForSequenceClassification
     
     # IntensiveModelArguments
-    intensive_model_name: hogger32/xlmRoberta-for-VietnameseQA
-    intensive_architectures: RobertaForQuestionAnsweringAVPool
+    intensive_model_name: /home/annt/kbqa/mrc/mrc/train/microsoft_infoxlm_large_5205/checkpoint-9485
+    intensive_architectures: XLMRobertaQAAVPool
     
 
 TrainingArguments:
@@ -34,8 +34,8 @@ TrainingArguments:
     learning_rate: 2e-5
     evaluation_strategy: epoch
     save_strategy: epoch
-    per_device_train_batch_size: 12
-    per_device_eval_batch_size: 12
+    per_device_train_batch_size: 4
+    per_device_eval_batch_size: 4
     num_train_epochs: 5.0
     # save_steps: 5000
     # save_total_limit: 2
@@ -45,3 +45,4 @@ TrainingArguments:
     load_best_model_at_end: True
     metric_for_best_model: f1,exact
     logging_dir: logs
+    logging_steps: 20

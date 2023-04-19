@@ -1,8 +1,8 @@
-import datasets
+import evaluate
 from transformers.trainer_utils import EvalPrediction
 
 
-squad_v2 = datasets.load_metric("squad_v2").compute
+squad_v2 = evaluate.load("squad_v2").compute
 
 def compute_squad_v2(p: EvalPrediction):
     """

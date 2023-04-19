@@ -28,7 +28,7 @@ logger = logging.get_logger(__name__)
 class MRC_CLS(BaseReader):
     name: str = "mrc_cls"
 
-    def post_processing_function(
+    def post_process_function(
         self,
         output: EvalLoopOutput,
         eval_examples: datasets.Dataset,
@@ -44,7 +44,7 @@ class MRC_CLS(BaseReader):
             n_best_size=self.data_args.n_best_size,
             max_answer_length=self.data_args.max_answer_length,
             null_score_diff_threshold=self.data_args.null_score_diff_threshold,
-            output_dir=self.training_args.output_dir,
+            output_dir=self.args.output_dir,
             log_level=log_level,
             prefix=mode,
         )
@@ -316,37 +316,104 @@ class RearVerifier:
                 
         return output_predictions, output_scores
 
+
+class RearVerifier:
+    
+    def __init__(
+        self, 
+        beta1: int = 1, 
+        beta2: int = 1,
+        best_cof: int = 1,
+        thresh: float = 0.0,
+    ):
+        self.beta1 = beta1
+        self.beta2 = beta2
+        self.best_cof = best_cof
+        self.thresh = thresh
+    
+    def __call__(
+        self,
+        score_ext: Dict[str, float],
+        score_diff: Dict[str, float],
+        nbest_preds: Dict[str, Dict[int, Dict[str, float]]]
+    ):
+        all_scores = collections.OrderedDict()
+        assert score_ext.keys() == score_diff.keys()
+        for key in score_ext.keys():
+            if key not in all_scores:
+                all_scores[key] = []
+            all_scores[key].extend(
+                [self.beta1 * score_ext[key],
+                 self.beta2 * score_diff[key]]
+            )
+        output_scores = {}
+        for key, scores in all_scores.items():
+            mean_score = sum(scores) / float(len(scores))
+            output_scores[key] = mean_score
+            
+        all_nbest = collections.OrderedDict()
+        for key, entries in nbest_preds.items():
+            if key not in all_nbest:
+                all_nbest[key] = collections.defaultdict(float)
+            for entry in entries:
+                prob = self.best_cof * entry["probability"]
+                all_nbest[key][entry["text"]] += prob
+        
+        output_predictions = {}
+        for key, entry_map in all_nbest.items():
+            sorted_texts = sorted(
+                entry_map.keys(), key=lambda x: entry_map[x], reverse=True
+            )
+            best_text = sorted_texts[0]
+            output_predictions[key] = best_text
+            
+        for qid in output_predictions.keys():
+            if output_scores[qid] > self.thresh:
+                output_predictions[qid] = ""
+                
+        return output_predictions, output_scores
+
+
 class MultiTaskReader:
 
     def __init__(
         self,
         args,
         mrc_cls: MRC_CLS,
+        rear_verifier: RearVerifier,
         prep_fn: Tuple[Callable, Callable]
     ):
         self.args = args
         self.mrc_cls = mrc_cls
+        self.rear_verifier = rear_verifier
         self.intensive_prep_fn, _ = prep_fn
     
     @classmethod
     def load(
         cls,
         train_examples=None,
-        train_dataset=None,
-        eval_dataset=None,
+        intensive_train_dataset=None,
         eval_examples=None,
+        intensive_eval_dataset=None,
         config_file: str = C.DEFAULT_CONFIG_FILE
     ):
         parser = HfArgumentParser([RetroArguments, TrainingArguments])
         retro_args, training_args = parser.parse_yaml_file(yaml_file=config_file)
-        intensive_run_name = None
-        intensive_best_metric = None
+        if training_args.run_name is not None and "," in training_args.run_name:
+            sketch_run_name, intensive_run_name = training_args.run_name.split(",")
+        else:
+            sketch_run_name, intensive_run_name = None, None
+        if training_args.metric_for_best_model is not None and "," in training_args.metric_for_best_model:
+            sketch_best_metric, intensive_best_metric = training_args.metric_for_best_model.split(",")
+        else:
+            sketch_best_metric, intensive_best_metric = None, None
         intensive_training_args = training_args
 
         intensive_tokenizer = AutoTokenizer.from_pretrained(
             pretrained_model_name_or_path=retro_args.intensive_tokenizer_name,
             use_auth_token=retro_args.use_auth_token,
             revision=retro_args.intensive_revision,
+            use_fast=True
         )
 
          # If `train_examples` is feeded, perform preprocessing
@@ -397,10 +464,19 @@ class MultiTaskReader:
             compute_metrics=compute_squad_v2,
         )
 
+        # Get rear verifier
+        rear_verifier = RearVerifier(
+            beta1=retro_args.beta1,
+            beta2=retro_args.beta2,
+            best_cof=retro_args.best_cof,
+            thresh=retro_args.rear_threshold,
+        )
+
         return cls(
             args=retro_args,
             mrc_cls=intensive_reader,
-            prep_fn=(intensive_prep_fn,)
+            rear_verifier=rear_verifier,
+            prep_fn=(intensive_prep_fn, intensive_prep_fn)
         )
     
     def __call__(
@@ -455,119 +531,3 @@ class MultiTaskReader:
         # if self.return_submodule_outputs:
         #     outputs += (score_ext, nbest_preds, score_diff)
         return outputs
-    
-def schema_integrate(example: Batch) -> Union[Dict, Any]:
-    title = example["title"]
-    question = example["question"]
-    context = example["context"]
-    guid = example["id"]
-    classtype = [""] * len(title)
-    dataset_name = source = ["squad_v2"] * len(title)
-    answers, is_impossible = [], []
-    for answer_examples in example["answers"]:
-        if answer_examples["text"]:
-            answers.append(answer_examples)
-            is_impossible.append(False)
-        else:
-            answers.append({"text": [""], "answer_start": [-1]})
-            is_impossible.append(True)
-    # The feature names must be sorted.
-    return {
-        "guid": guid,
-        "question": question,
-        "context": context,
-        "answers": answers,
-        "title": title,
-        "classtype": classtype,
-        "source": source,
-        "is_impossible": is_impossible,
-        "dataset": dataset_name,
-    }
-
-# data augmentation for multiple answers
-def data_aug_for_multiple_answers(examples: Batch) -> Union[Dict, Any]:
-    result = {key: [] for key in examples.keys()}
-    
-    def update(i, answers=None):
-        for key in result.keys():
-            if key == "answers" and answers is not None:
-                result[key].append(answers)
-            else:
-                result[key].append(examples[key][i])
-                
-    for i, (answers, unanswerable) in enumerate(
-        zip(examples["answers"], examples["is_impossible"])
-    ):
-        answerable = not unanswerable
-        assert (
-            len(answers["text"]) == len(answers["answer_start"]) or
-            answers["answer_start"][0] == -1
-        )
-        if answerable and len(answers["text"]) > 1:
-            for n_ans in range(len(answers["text"])):
-                ans = {
-                    "text": [answers["text"][n_ans]],
-                    "answer_start": [answers["answer_start"][n_ans]],
-                }
-                update(i, ans)
-        elif not answerable:
-            update(i, {"text": [], "answer_start": []})
-        else:
-            update(i)
-            
-    return result
-
-def main(args):
-    squad_v2 = datasets.load_dataset("/home/annt/kbqa/reading-comprehension-service/sentence_load_data.py")
-
-    squad_v2 = squad_v2.map(
-        schema_integrate, 
-        batched=True,
-        remove_columns=squad_v2.column_names["train"],
-        features=C.EXAMPLE_FEATURES,
-    )
-
-    # num_rows in train: 130,319, num_unanswerable in train: 43,498
-    # num_rows in valid:  11,873, num_unanswerable in valid:  5,945
-    num_unanswerable_train = sum(squad_v2["train"]["is_impossible"])
-    num_unanswerable_valid = sum(squad_v2["validation"]["is_impossible"])
-    logger.warning(f"Number of unanswerable sample for SQuAD v2.0 train dataset: {num_unanswerable_train}")
-    logger.warning(f"Number of unanswerable sample for SQuAD v2.0 validation dataset: {num_unanswerable_valid}")
-    # Train data augmentation for multiple answers
-    # no answer {"text": [], "answer_start": [-1]} -> {"text": [], "answer_start": []}
-    squad_v2_train = squad_v2["train"].map(
-        data_aug_for_multiple_answers,
-        batched=True,
-        batch_size=16,
-        num_proc=5,
-    )
-    squad_v2 = datasets.DatasetDict({
-        "train": squad_v2_train,              # num_rows: 130,319
-        "validation": squad_v2["validation"]  # num_rows:  11,873
-    })
-    # Load Retro Reader
-    # features: parse arguments
-    #           make train/eval dataset from examples
-    #           load model from 🤗 hub
-    #           set sketch/intensive reader and rear verifier
-    retro_reader = MultiTaskReader.load(
-        train_examples=squad_v2["train"], #.select(range(1000)),
-        eval_examples=squad_v2["validation"], #.select(range(100)),
-        config_file=args.configs,
-    )
-    # Train
-    if args.do_train:
-        retro_reader.train()
-        logger.warning("Train retrospective reader Done.")
-    if args.do_eval:
-        retro_reader.evaluate()
-        logger.warning("Evaluate retrospective reader Done.")
-
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--configs", "-c", type=str, default="configs/train_en_electra_large.yaml", help="config file path")
-    parser.add_argument("--do_train", "-tr", type=bool, default=True, help="bool")
-    parser.add_argument("--do_eval", "-ev", type=bool, default=False, help="bool")
-    args = parser.parse_args()
-    main(args)

@@ -1,0 +1,24 @@
+{
+    "os": "Linux-5.4.0-146-generic-x86_64-with-glibc2.31",
+    "python": "3.9.13",
+    "heartbeatAt": "2023-04-19T06:27:42.898264",
+    "startedAt": "2023-04-19T06:27:41.782926",
+    "docker": null,
+    "gpu": "NVIDIA A40",
+    "gpu_count": 1,
+    "cpu_count": 64,
+    "cuda": null,
+    "args": [],
+    "state": "running",
+    "program": "/home/annt/kbqa/multitask_mrc/multitask/train_qa.py",
+    "codePath": "train_qa.py",
+    "git": {
+        "remote": "https://github.com/annt5396/multitask.git",
+        "commit": "f3609e81a67f557fda48355aafaaa35b85a3d759"
+    },
+    "email": "anlu22496@gmail,com",
+    "root": "/home/annt/kbqa/multitask_mrc/multitask",
+    "host": "ai-gpu-3",
+    "username": "annt",
+    "executable": "/home/annt/miniconda3/bin/python"
+}

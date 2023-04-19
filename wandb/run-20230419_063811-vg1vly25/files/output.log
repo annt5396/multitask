@@ -1,0 +1,217 @@
+
+  0%|                                                                                                                                                                                                             | 0/1840 [00:00<?, ?it/s]You're using a XLMRobertaTokenizerFast tokenizer. Please note that with a fast tokenizer, using the `__call__` method is faster than using a method to encode the text followed by a call to the `pad` method to get a padded encoding.
+
+
+
+
+
+
+
+  1%|██▊                                                                                                                                                                                                 | 26/1840 [00:27<27:58,  1.08it/s]
+
+
+
+
+
+
+  2%|████▏                                                                                                                                                                                               | 39/1840 [00:39<27:44,  1.08it/s]
+
+
+
+
+
+
+
+
+
+  3%|██████▏                                                                                                                                                                                             | 58/1840 [00:57<27:27,  1.08it/s]
+
+
+
+
+
+
+
+
+
+
+  4%|████████▌                                                                                                                                                                                           | 80/1840 [01:17<27:05,  1.08it/s]
+
+
+
+
+
+
+
+
+
+  5%|██████████▌                                                                                                                                                                                        | 100/1840 [01:36<26:46,  1.08it/s]
+
+
+
+
+
+
+
+
+
+  6%|████████████▌                                                                                                                                                                                      | 119/1840 [01:53<26:27,  1.08it/s]
+
+
+
+
+
+
+
+
+
+  8%|██████████████▋                                                                                                                                                                                    | 139/1840 [02:12<26:02,  1.09it/s]
+
+
+
+
+
+
+
+
+
+
+  9%|████████████████▉                                                                                                                                                                                  | 160/1840 [02:31<25:54,  1.08it/s]
+
+
+
+
+
+
+
+
+ 10%|███████████████████                                                                                                                                                                                | 180/1840 [02:49<25:16,  1.09it/s]
+
+
+
+
+ 11%|█████████████████████▏                                                                                                                                                                             | 200/1840 [03:08<25:07,  1.09it/s]
+
+
+
+
+
+
+ 12%|███████████████████████▏                                                                                                                                                                           | 219/1840 [03:25<24:50,  1.09it/s]
+
+
+
+
+
+
+
+
+ 13%|█████████████████████████▎                                                                                                                                                                         | 239/1840 [03:44<24:41,  1.08it/s]
+
+
+
+
+
+
+ 14%|███████████████████████████▋                                                                                                                                                                       | 261/1840 [04:04<24:12,  1.09it/s]
+
+
+
+
+
+ 15%|████████████████████████████▋                                                                                                                                                                      | 271/1840 [04:13<24:11,  1.08it/s]
+
+
+
+
+
+
+
+
+
+ 16%|███████████████████████████████▊                                                                                                                                                                   | 300/1840 [04:40<23:40,  1.08it/s]
+
+
+
+
+
+
+
+
+
+ 17%|█████████████████████████████████▊                                                                                                                                                                 | 319/1840 [04:57<23:21,  1.09it/s]
+
+
+
+
+
+
+
+
+
+ 18%|███████████████████████████████████▉                                                                                                                                                               | 339/1840 [05:16<23:00,  1.09it/s]
+
+
+
+
+ 20%|██████████████████████████████████████▉                                                                                                                                                            | 367/1840 [05:42<24:10,  1.02it/s]
+ 20%|███████████████████████████████████████                                                                                                                                                            | 368/1840 [05:43<21:34,  1.14it/s]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 257/257 [01:03<00:00,  4.88it/s]
+
+ 86%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████                            | 878/1026 [00:02<00:00, 359.13it/s]
+
+ 20%|███████████████████████████████████████                                                                                                                                                            | 368/1840 [06:51<21:34,  1.14it/s]Traceback (most recent call last):
+  File "/home/annt/miniconda3/lib/python3.9/site-packages/torch/serialization.py", line 379, in save
+    _save(obj, opened_zipfile, pickle_module, pickle_protocol)
+  File "/home/annt/miniconda3/lib/python3.9/site-packages/torch/serialization.py", line 604, in _save
+    zip_file.write_record(name, storage.data_ptr(), num_bytes)
+KeyboardInterrupt
+During handling of the above exception, another exception occurred:
+Traceback (most recent call last):
+  File "/home/annt/kbqa/multitask_mrc/multitask/train_qa.py", line 131, in <module>
+    main(args)
+  File "/home/annt/kbqa/multitask_mrc/multitask/train_qa.py", line 116, in main
+    retro_reader.train()
+  File "/home/annt/kbqa/multitask_mrc/multitask/src/qa.py", line 505, in train
+    self.mrc_cls.train()
+  File "/home/annt/miniconda3/lib/python3.9/site-packages/transformers/trainer.py", line 1662, in train
+    return inner_training_loop(
+  File "/home/annt/miniconda3/lib/python3.9/site-packages/transformers/trainer.py", line 2021, in _inner_training_loop
+    self._maybe_log_save_evaluate(tr_loss, model, trial, epoch, ignore_keys_for_eval)
+  File "/home/annt/miniconda3/lib/python3.9/site-packages/transformers/trainer.py", line 2291, in _maybe_log_save_evaluate
+    self._save_checkpoint(model, trial, metrics=metrics)
+  File "/home/annt/miniconda3/lib/python3.9/site-packages/transformers/trainer.py", line 2348, in _save_checkpoint
+    self.save_model(output_dir, _internal_call=True)
+  File "/home/annt/miniconda3/lib/python3.9/site-packages/transformers/trainer.py", line 2830, in save_model
+    self._save(output_dir)
+  File "/home/annt/miniconda3/lib/python3.9/site-packages/transformers/trainer.py", line 2886, in _save
+    self.model.save_pretrained(
+  File "/home/annt/miniconda3/lib/python3.9/site-packages/transformers/modeling_utils.py", line 1843, in save_pretrained
+    save_function(shard, os.path.join(save_directory, shard_file))
+  File "/home/annt/miniconda3/lib/python3.9/site-packages/torch/serialization.py", line 380, in save
+    return
+  File "/home/annt/miniconda3/lib/python3.9/site-packages/torch/serialization.py", line 259, in __exit__
+    self.file_like.write_end_of_file()
+RuntimeError: [enforce fail at inline_container.cc:319] . unexpected pos 1326387392 vs 1326387280

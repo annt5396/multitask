@@ -1,3 +1,3 @@
-from .train import MRC_CLS
+from .qa import MultiTaskReader
 
-__all__ = ["constants", "train", "args"]
+__all__ = ["constants", "train", "args", "base"]

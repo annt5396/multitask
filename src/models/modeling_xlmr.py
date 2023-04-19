@@ -6,19 +6,21 @@ from typing import List, Optional
 from transformers import (
     XLMRobertaForSequenceClassification,
     XLMRobertaPreTrainedModel,
-    XLMRobertaModel,
-    XLMRobertaCongig
+    XLMRobertaModel
 )
 
 from .modeling_outputs import QuestionAnsweringNaModelOutput
 
 class XLMRobertaQAAVPool(XLMRobertaPreTrainedModel):
+    _keys_to_ignore_on_load_unexpected = [r"pooler"]
+    _keys_to_ignore_on_load_missing = [r"position_ids"]
+    model_type = "xlmroberta"
 
     def __init__(self, config):
-        super(XLMRobertaQAAVPool, self).__init__(config)
+        super().__init__(config)
         self.num_labels = config.num_labels
 
-        self.xlmr = XLMRobertaModel(config)
+        self.xlmr = XLMRobertaModel(config, add_pooling_layer=False)
         self.qa_outputs = nn.Linear(config.hidden_size, config.num_labels)
         self.has_ans = nn.Sequential(
             nn.Dropout(p=config.hidden_dropout_prob),
@@ -90,7 +92,7 @@ class XLMRobertaQAAVPool(XLMRobertaPreTrainedModel):
             end_loss = loss_fct(end_logits, end_positions)
 
             cls_loss = loss_fct(has_logits, is_impossibles.long())
-            total_loss = (start_loss + end_loss) * 1.0 + cls_loss / 2
+            total_loss = (start_loss + end_loss +  cls_loss) / 3
 
         if not return_dict:
             output = (start_logits, end_logits, has_logits) + outputs[2:]
